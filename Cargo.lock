@@ -3449,7 +3449,7 @@ dependencies = [
  "bytemuck",
  "dae-parser",
  "egui_extras",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "glam",
  "gltf",
  "half",
