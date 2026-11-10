@@ -2,12 +2,14 @@
 
 > A modern, standalone reimagining of the classic Quixel nDo2 normal-map authoring workflow.
 
-**Status:** Alpha — Windows builds available on [Gumroad](https://mazakit.gumroad.com/l/nshade)  
-**Version:** 0.6.8  
-**Document version:** 1.0  
+**Status:** Alpha — actively developed  
+**Repository version:** 0.6.8  
 **Last updated:** 2026-11-10  
-**Platform:** Windows first; macOS/Linux later  
+**Platforms:** Windows and Linux  
+**Blender integration:** Blender Bridge add-on  
 **License:** MIT (see [LICENSE](LICENSE))
+
+> Version note: `0.6.8` is the version recorded in this README's source snapshot. Keep it synchronized with the version shown by the application and the downloadable release before publishing.
 
 > How-to guide for the latest additions — layer booleans, the knife cut, the ruler and edge smoothing — is in **[Manual.md](Manual.md)**.
 
@@ -19,9 +21,13 @@
 
 ## Download
 
-[**Download N-shade on Gumroad →**](https://mazakit.gumroad.com/l/nshade)
+[**Download N-shade for Windows and Linux on itch.io →**](https://mazakit.itch.io/n-shade)
 
-Prebuilt Windows builds are distributed through Gumroad. The source in this repository is MIT-licensed, so you can also build it yourself with the instructions in [Development setup](#11-development-setup).
+[**Browse the source code on GitHub →**](https://github.com/mazakitservices-code/n-shade-source)
+
+The itch.io project page contains the available prebuilt downloads. Check the files and release notes there for the platform-specific package and build version. The source in this repository is MIT-licensed, so you can also build N-shade yourself using the instructions in [Development setup](#11-development-setup).
+
+N-shade also includes a Blender Bridge add-on for connecting the application with Blender. See the add-on files and their accompanying instructions in this repository for installation and usage details.
 
 The workspace is split into `ns_core` (engine-agnostic math, layer stack, and CPU reference), `ns_bake` (hierarchical layers/groups, clipping masks, boolean normal blending, vector outline booleans baked into the bevel, paths, FFT integration), `ns_pbr` (classical single-image PBR generation), `ns_cli` (bevel/convert/derived/demo/stress), and `ns_app` (Bevy + egui editor with a Substance Painter-style dock layout, a split 3D/2D viewport, direct canvas shape editing with fill/outline stroke styles, a vector pen and node editor with SVG import, a GPU compute evaluator for shape stacks, partial cut / partial slash / clip divide boolean operations, a sweep-along-path array with tangent rotation driven by vector path guides and on-model surface-snapped path handles, FBX/OBJ/DAE/GLB/USD preview-mesh import with UDIM detection, a docked optional single-image PBR panel, toggleable UV-island/tile overlays with adjustable opacity in both the 3D preview and 2D canvas, background high-to-low and low-poly bevel normal baking, an optional CPU/GPU lightmap baker with full/direct/indirect/ambient-occlusion modes, sun/HDR environment shadows, editable point/spot/area scene lights and a live PBR lighting preview, vendor-neutral wgpu tracing with built-in, OIDN or NVIDIA OptiX denoising, material/lighting/environment preview presets, and a live 3D normal-mapped viewport).
 
@@ -127,6 +133,8 @@ Quixel never published nDo's source code or a technical paper. The algorithm des
 
 ## 3. Product definition
 
+> The following product definition and technical-design sections preserve the project's original research and design intent. They are not a complete feature checklist. For the current implemented feature set, platform support and known limitations, see [Development setup and implementation notes](#11-development-setup).
+
 ### 3.1 Target users
 
 - Environment and prop artists creating hard-surface details.
@@ -148,21 +156,24 @@ Quixel never published nDo's source code or a technical paper. The algorithm des
 - **Height-first, layer-based workflow** rather than node graphs.
 - **Parametric shape bevels** with precise, editable controls.
 - **Correct normal math** for blending and transforms.
-- **Live 3D preview** with PBR and displacement.
+- **Live 3D preview** for inspecting generated surface detail; lighting and material capabilities vary by preview mode and are documented in the current implementation notes.
 - **Standalone** with no host-editor dependency.
 - **PNG/TGA/EXR output** with explicit OpenGL/DirectX conventions.
-- **One-time license** rather than a subscription.
+- **Standalone workflow** that does not require a host image editor. The source code is MIT-licensed; see the download page for the current binary distribution details.
 
-### 3.4 Non-goals for v1
+### 3.4 Product boundaries
 
-- Full 3D texture painting on arbitrary meshes.
-- High-poly-to-low-poly baking (use xNormal, Substance, or Blender).
+N-shade is focused on vector-driven surface authoring, normal-map generation and related texture workflows. It is not intended to be:
+
+- A full 3D texture-painting suite comparable to Substance Painter.
 - A general-purpose raster image editor.
-- Full external layer-file compatibility.
+- A replacement for a complete 3D modelling application.
 - A material library or scan marketplace.
-- Multi-user collaboration.
+- A multi-user collaboration platform.
 
-### 3.5 MVP scope
+Mesh preview, normal baking and optional lightmap baking are described in the implementation notes later in this README. These are supporting workflows, not a claim that N-shade is a complete modelling or rendering package.
+
+### 3.5 Original MVP scope (historical)
 
 - 4K canvas; 8-bit and 16-bit export.
 - Shape layers: rectangle, rounded rectangle, circle, polygon, path.
@@ -176,7 +187,7 @@ Quixel never published nDo's source code or a technical paper. The algorithm des
 - Project save/load.
 - PNG/TGA/EXR import/export only; no external layered document formats.
 
-### 3.6 Success criteria
+### 3.6 Original success criteria (historical targets)
 
 - Create a 2K hard-surface panel with 20 shape layers in under 10 minutes.
 - Export an engine-ready normal map without manual channel fixes.
@@ -185,7 +196,7 @@ Quixel never published nDo's source code or a technical paper. The algorithm des
 - Five target artists complete a defined task without documentation.
 - No crash or data loss during an 8-hour session.
 
-### 3.7 Feature parity matrix
+### 3.7 Original feature parity planning matrix
 
 | Capability | nDo2 | MVP | v1 |
 |---|---|---|---|
@@ -442,44 +453,38 @@ Pipeline:
 
 ## 5. Architecture
 
-### 5.1 Decision summary
+> **Implementation note:** This section describes the current repository architecture. Some earlier product-planning sections above retain design concepts and target behaviours; the implementation status and known limitations in Section 11 are the source of truth for what is currently available.
 
-| Decision | Choice | Rationale |
-|---|---|---|
-| Product form | Standalone desktop app | Own the runtime and document model |
-| Core language | Rust | Performance, memory safety, portable to WASM |
-| UI | Tauri 2 + React/Svelte + TypeScript | Small binaries, native file access, fast UI iteration |
-| GPU | `wgpu` compute + WebGL2/WebGPU viewport | Cross-platform compute and rendering |
-| 3D preview | three.js initially; custom `wgpu` renderer later if needed | Fast path to PBR/IBL/POM |
-| Document format | JSON manifest + binary tile store in a zip container | Human-inspectable metadata, efficient large images |
-| Export formats | PNG/TGA/EXR | Engine-ready texture and height output |
+### 5.1 Current implementation
+
+| Area | Current implementation |
+|---|---|
+| Product form | Standalone desktop application |
+| Core language | Rust |
+| Application framework | Bevy 0.19 |
+| UI | `egui` through `bevy_egui` |
+| GPU | `wgpu` compute and Bevy rendering |
+| CPU processing | Rust reference/evaluation paths, with Rayon where used |
+| 3D preview | Bevy-based viewport |
+| Blender integration | Separate Blender Bridge add-on |
+| Project and image I/O | Native N-shade project handling and supported image/mesh formats described below |
+| Export formats | PNG/TGA/EXR where supported by the relevant workflow |
 
 ### 5.2 Standalone application
 
 N-shade owns its document model, rendering, and file handling. It does not depend on a host image editor, plugin runtime, or external application model. This keeps performance predictable and avoids coupling the product to third-party plugin APIs.
 
-### 5.3 Module layout
+### 5.3 Current workspace layout
 
 ```text
 crates/
-  core-image/      buffers, tiles, color management, blur, morphology, resampling
-  core-height/     SDF shapes, bevel profiles, height compositing
-  core-normal/     height↔normal, whiteout/RNM, transforms, conventions
-  core-maps/       AO, cavity, curvature, diffuse/specular generation
-  core-doc/        layer tree, groups, masks, undo/redo, project format
-  core-gpu/        wgpu compute kernels
-  io/              PNG/TGA/EXR, engine presets, batch conversion
-  cli/             headless conversion and benchmarking
+  ns_core/         Engine-agnostic math, layer stack, path rasterizer, EDT/bevel, FFT integration, CPU reference
+  ns_pbr/          Classical single-image PBR generation pipeline
+  ns_cli/          Headless batch conversion, bevels, derived maps, demos and stress tests
+  ns_app/          Bevy + egui desktop editor
 
-apps/
-  desktop/
-    src/           React/Svelte UI
-    src-tauri/     Tauri shell and native commands
-    preview/       three.js/WebGPU viewport
-
-docs/
-  research/        archived references and notes
-  specs/           algorithm and file-format specifications
+# The Blender Bridge add-on is maintained alongside the application.
+# Consult its files and any bundled instructions for the current install path.
 ```
 
 ### 5.4 Data model
@@ -688,9 +693,11 @@ Both side docks are resizable and can be toggled from the top bar or the View me
 
 ---
 
-## 7. Roadmap
+## 7. Original project roadmap
 
-| Phase | Duration | Deliverables | Exit criteria |
+> **Historical planning reference:** The phase table below records the original development plan. It is not a statement that these phases are still pending. Several capabilities listed as future work have since been implemented; consult [Implemented vs planned](#111-implemented-vs-planned) and the alpha limitations for the current state.
+
+| Phase | Original estimate | Original deliverables | Original exit criteria |
 |---|---|---|---|
 | 0. Research and spec | 1–2 weeks | Reference corpus, product spec, stack decision, CLI prototype | Convincing hard-surface normal from a height map |
 | 1. Core engine | 4–6 weeks | Height↔normal, blending, transforms, AO/cavity, tiling, golden tests | CLI converts and composites maps with verified math |
@@ -795,7 +802,7 @@ Measure time, errors, and subjective confidence.
 1. **How deep should the brush engine go?** MVP: import height and simple paint. v1: soft brush, erase, mask, pressure.
 2. **Custom mesh support:** glTF first or FBX first? Recommendation: glTF for modern pipelines; FBX if the target audience demands it.
 3. **Target maximum resolution:** 8K at v1, 16K later? Recommendation: 8K, with tiled architecture ready for 16K.
-4. **Pricing and distribution:** the source is MIT-licensed and prebuilt Windows binaries are sold through Gumroad. Indie/studio pricing and the upgrade policy still need validation with beta users.
+4. **Distribution:** the source is MIT-licensed and prebuilt Windows/Linux releases are published through the itch.io project page. Check that page for current packages and release details.
 5. **Name:** "N-shade" is the project name; verify trademark similarity before public release.
 6. **Diffuse/spec generation:** include in v1 or defer? Recommendation: defer; focus on normal/height/AO/cavity quality first.
 
@@ -805,9 +812,9 @@ Measure time, errors, and subjective confidence.
 
 ### 11.1 Toolchain
 
-- Rust 1.95 or newer (the workspace `rust-version`; tested with cargo 1.99.1 on Windows).
-- A Vulkan, DX12, or Metal GPU for the Bevy preview.
-- Windows is the primary development platform; Bevy and `ns_core` are cross-platform.
+- Rust 1.95 or newer (the workspace `rust-version`; the exact tested toolchain may vary by release).
+- A Vulkan, DX12, or Metal-compatible graphics stack for the Bevy preview; CPU-side workflows may have different requirements.
+- Windows and Linux builds are available. Platform-specific GPU drivers and system libraries can affect rendering and optional acceleration.
 
 Crate layout:
 
@@ -1270,7 +1277,7 @@ Known alpha limitations:
 - UDIM support evaluates **one tile at a time** on the canvas: the header selector drives the document, new layers are tagged to that tile, and **Properties → UDIM tile** can retag any layer to another tile or back to **All tiles**. Baking and the export card can write one file per tile, and export reads the tagged tiles from the stack even when no mesh is loaded. The 3D preview still repeats the active-tile map across the mesh rather than building a multi-tile atlas.
 - The path tool rasterizes Bézier paths and the interactive pen/node editor is wired into the editor; imported SVG paths use the same editing pipeline. Rotating or converting a primitive bakes it into a path, so its primitive parameters are no longer editable.
 - Boolean and stroke outlines commonly produce even-odd multi-subpath shapes; single-loop results stay on the analytic GPU SDF path, while multi-loop and holed results use a precomputed texture layer. Boolean groups themselves use the CPU tree evaluator by design. Booleans run on the flattened outlines (0.15 px curve tolerance), so curves become fine polylines before they are re-rasterized and beveled; the outlines are intersected at exact crossings, so overlapping boundaries collapse instead of leaving seams. Bake and Divide release reuse the same vector regions, so their results stay node-editable.
-- The 3D viewport uses directional lights and a simple material, not an HDRI/IBL environment.
+- **Main 3D viewport lighting:** the standard document preview uses directional lighting and a simple preview material; it does not currently provide a general HDRI/IBL environment in that viewport. The separate optional Lightmap tab has its own HDR environment lighting and a dedicated rasterized lighting preview. Do not confuse the lightmap preview with the normal-map document viewport.
 - The PBR panel ships the classical backend only. Roughness and metallic are estimates, and the ML/ONNX/sidecar backends, painted masks, disk cache, and GPU ports are planned but not wired in yet. Height/normal fusion currently uses the classical luminance-band path. EXR input works, but export is PNG 8/16-bit.
 - `--screenshot` may omit egui; use the window capture script for documentation screenshots.
 
@@ -1294,11 +1301,17 @@ Performance measured on the 1024×1024 synthetic stone sample in a debug build w
 - Keep `ns_core` free of Bevy types; the CPU path remains the correctness oracle.
 - Normal maps are linear data; never route them through sRGB conversions.
 
-### 11.10 Contributing
+### 11.10 Blender Bridge
+
+N-shade includes a Blender Bridge add-on intended to connect the standalone application with Blender workflows.
+
+The add-on is distributed with the project source. Because the exact installation and connection steps can change between releases, follow the instructions bundled with the add-on in the repository and use a matching N-shade application/add-on version. If you encounter a connection or compatibility issue, include your Blender version, N-shade version, operating system and relevant logs when reporting it.
+
+### 11.11 Contributing
 
 The repository is open source under the MIT license. Before opening a pull request, run `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo test --workspace`. Keep `ns_core` free of Bevy types, and keep normal maps in linear space. Report security issues through the private advisory flow described in [SECURITY.md](SECURITY.md).
 
-### 11.11 License
+### 11.12 License
 
 **MIT**, declared in the workspace `Cargo.toml` and shipped as full text in [`LICENSE`](LICENSE). You may use, redistribute, modify, and sell the software provided the copyright notice and permission notice are retained. The notice carries `Copyright (c) 2026 N-shade contributors`, matching the `LegalCopyright` resource embedded in the executable. Third-party components keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
