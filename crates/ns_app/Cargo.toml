@@ -40,7 +40,7 @@ ns_core = { path = "../ns_core" }
 ns_pbr = { path = "../ns_pbr" }
 ns_bake = { path = "../ns_bake", features = ["gpu"] }
 serde_json = "1.0"
-getrandom = "0.3"
+getrandom = "0.4"
 rfd = "0.15"
 gltf = "1.4"
 image.workspace = true
