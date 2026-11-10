@@ -2,7 +2,7 @@
 
 > A modern, standalone reimagining of the classic Quixel nDo2 normal-map authoring workflow.
 
-**Status:** Alpha — Windows builds distributed through Gumroad  
+**Status:** Alpha — Windows builds available on [Gumroad](https://mazakit.gumroad.com/l/nshade)  
 **Version:** 0.6.8  
 **Document version:** 1.0  
 **Last updated:** 2026-11-10  
@@ -18,6 +18,8 @@
 </p>
 
 ## Download
+
+[**Download N-shade on Gumroad →**](https://mazakit.gumroad.com/l/nshade)
 
 Prebuilt Windows builds are distributed through Gumroad. The source in this repository is MIT-licensed, so you can also build it yourself with the instructions in [Development setup](#11-development-setup).
 
