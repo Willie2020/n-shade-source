@@ -1,0 +1,6 @@
+[toolchain]
+# Pin the toolchain that CI and releases use. `rust-version` in Cargo.toml
+# remains the MSRV; bump it deliberately when a dependency requires it.
+channel = "1.99.1"
+components = ["clippy", "rustfmt"]
+profile = "minimal"

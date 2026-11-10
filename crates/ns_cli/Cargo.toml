@@ -1,0 +1,11 @@
+[package]
+name = "ns_cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+glam.workspace = true
+ns_core = { path = "../ns_core" }
+uuid.workspace = true

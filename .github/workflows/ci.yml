@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call: # lets the release workflow require this gate
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: "1.99.1"
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+
+      - name: Formatting
+        run: cargo fmt --all -- --check
+
+      # ns_app still carries a pre-existing lint backlog. Keep the gate strict
+      # for the crates that are clean and advisory for the app until it clears.
+      - name: Clippy (core crates)
+        run: cargo clippy -p ns_core -p ns_pbr -p ns_bake --all-targets -- -D warnings
+
+      - name: Clippy (app, advisory)
+        run: cargo clippy -p ns_app --all-targets
+
+      - name: Tests (core crates)
+        run: cargo test --workspace --exclude ns_app
+
+      - name: Tests (app)
+        run: cargo test -p ns_app
+
+      # A skipped GPU test used to look identical to a pass. These steps set
+      # NS_REQUIRE_GPU so "no adapter" fails the job instead.
+      - name: GPU parity (must really run)
+        run: cargo test -p ns_app parity -- --nocapture
+        env:
+          NS_REQUIRE_GPU: "1"
+
+      - name: GPU lightmap tests (must really run)
+        run: cargo test -p ns_bake --features gpu gpu_ -- --nocapture
+        env:
+          NS_REQUIRE_GPU: "1"

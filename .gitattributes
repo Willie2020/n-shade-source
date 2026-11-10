@@ -1,0 +1,9 @@
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.exr binary
+*.zip binary
+*.dll binary
+# Legacy projects are RON text but v2 projects are ZIP archives; binary
+# handling is the only safe rule because both share the extension.
+*.nsproj binary

@@ -1,0 +1,21 @@
+[package]
+name = "ns_bake"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[features]
+default = []
+# Optional vendor-neutral GPU path tracer (wgpu). The CPU baker remains the
+# fallback and is always available.
+gpu = ["dep:wgpu", "dep:pollster", "dep:bytemuck"]
+
+[dependencies]
+glam.workspace = true
+rayon.workspace = true
+thiserror.workspace = true
+libloading.workspace = true
+wgpu = { workspace = true, optional = true }
+pollster = { workspace = true, optional = true }
+bytemuck = { workspace = true, optional = true }

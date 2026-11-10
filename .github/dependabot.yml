@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # 0.x minor bumps are breaking and need the manual upgrade checklist.
+      - dependency-name: "bevy*"
+      - dependency-name: "egui*"
+      - dependency-name: "wgpu"
+      - dependency-name: "winit"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

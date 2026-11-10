@@ -1,0 +1,32 @@
+[package]
+name = "ns_core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+glam.workspace = true
+rayon.workspace = true
+rustfft.workspace = true
+serde.workspace = true
+ron.workspace = true
+uuid.workspace = true
+thiserror.workspace = true
+image.workspace = true
+serde_json.workspace = true
+blake3.workspace = true
+zip.workspace = true
+roxmltree = "0.21.1"
+svgtypes = "0.16.1"
+kurbo = "0.13"
+ttf-parser.workspace = true
+
+[[bench]]
+name = "kernels"
+harness = false
+
+[dev-dependencies]
+approx.workspace = true
+proptest.workspace = true
+tempfile.workspace = true

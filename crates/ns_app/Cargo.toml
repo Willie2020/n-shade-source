@@ -1,0 +1,73 @@
+[package]
+name = "ns_app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "n-shade"
+path = "src/main.rs"
+
+[dependencies]
+bevy = { version = "0.19.1", default-features = false, features = [
+    "std",
+    "async_executor",
+    "area_light_luts",
+    "bevy_asset",
+    "bevy_core_pipeline",
+    "bevy_gltf",
+    "bevy_log",
+    "bevy_pbr",
+    "bevy_render",
+    "bevy_window",
+    "bevy_winit",
+    "multi_threaded",
+    "png",
+    # glTF loads scenes as world assets; their reflected components (Transform,
+    # Visibility, Mesh3d, materials, ...) must be in AppTypeRegistry to spawn.
+    "reflect_auto_register",
+    "tonemapping_luts",
+] }
+bevy_egui = { version = "0.42.0", default-features = false, features = [
+    "render",
+    "default_fonts",
+] }
+glam.workspace = true
+half = "2"
+bytemuck = { version = "1", features = ["derive"] }
+ns_core = { path = "../ns_core" }
+ns_pbr = { path = "../ns_pbr" }
+ns_bake = { path = "../ns_bake", features = ["gpu"] }
+serde_json = "1.0"
+getrandom = "0.3"
+rfd = "0.15"
+gltf = "1.4"
+image.workspace = true
+tobj = "4.0"
+dae-parser = "0.11"
+ufbx = "0.11"
+openusd = { version = "0.6", features = ["geom"] }
+egui_extras = { version = "0.36.2", features = ["svg"] }
+winit = "0.30"
+
+[dev-dependencies]
+tempfile.workspace = true
+proptest.workspace = true
+# Headless CPU↔GPU parity harness (T0.4).
+wgpu.workspace = true
+pollster.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = [
+    "Win32_Foundation",
+    "Win32_System_ProcessStatus",
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+    "Win32_UI_Input_Pointer",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N-shade · Viewport bar + left panel components</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080a0e; --panel:#0e1116; --surface:#141920; --surface-2:#1a2028;
+  --line:#1f2630; --text:#e9edf2; --muted:#8a94a3; --faint:#5b6572;
+  --accent:#e8943a; --accent-ink:#1a1006; --accent-soft:rgba(232,148,58,.14);
+  --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.4 var(--sans);padding:32px}
+button,select,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+h1{font-size:18px;font-weight:600}
+h2{font-size:11px;letter-spacing:.12em;color:var(--faint);font-weight:500;margin:36px 0 10px;text-transform:uppercase}
+.sub{color:var(--muted);margin:4px 0 20px}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.chip{padding:7px 14px;border-radius:6px;background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.chip[aria-pressed=true]{background:var(--accent-soft);color:var(--accent);border-color:rgba(232,148,58,.3)}
+.row{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.scroll{overflow-x:auto;padding-bottom:6px}
+.lbl{font:11px var(--mono);color:var(--faint);margin:0 0 6px}
+.states{display:flex;gap:28px;flex-wrap:wrap;margin-top:18px}
+.cap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+
+/* ===== A · VIEWPORT BAR ===== */
+.vbar{height:60px;width:1000px;display:flex;align-items:center;gap:6px;padding:0 10px;background:var(--panel);border:1px solid var(--line)}
+.vtab{padding:10px 18px;border-radius:6px;color:var(--muted);text-align:center;line-height:1.15}
+.vtab:hover,.vtab.is-hover{background:var(--surface);color:var(--text)}
+.vtab[aria-selected=true]{background:var(--surface);color:var(--text);font-weight:600;box-shadow:inset 0 -2px 0 var(--accent)}
+.ib{padding:8px;border-radius:6px;color:var(--muted);display:grid;place-items:center}
+.ib:hover,.ib.is-hover{background:var(--surface);color:var(--text)}
+.ib[aria-pressed=true]{background:var(--accent-soft);color:var(--accent)}
+.sel select,select.field{appearance:none;-webkit-appearance:none;background:var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a94a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 12px center;border:1px solid var(--line);border-radius:6px}
+.sel select{min-width:230px;padding:9px 38px 9px 14px}
+.zoom{font:400 12px var(--mono);color:var(--muted);padding:0 6px}
+.sp{flex:1}
+
+/* ===== B · TOOL RAIL ===== */
+.rail{width:72px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:2px}
+.tool{width:56px;padding:8px 0 6px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.tool:hover,.tool.is-hover{background:var(--surface);color:var(--text)}
+.tool[aria-pressed=true]{background:var(--accent-soft);color:var(--accent)}
+.rail .grow{flex:1;min-height:24px}
+
+/* ===== C · LAYERS PANEL CHROME ===== */
+.lp{width:380px;background:var(--panel);border:1px solid var(--line)}
+.ph{display:flex;align-items:center;gap:10px;padding:14px 16px;font-weight:600}
+.ph svg{color:var(--accent)}
+.ph .btn{margin-left:auto}
+.btn{padding:7px 14px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-weight:500;border:1px solid rgba(232,148,58,.25)}
+.btn:hover{background:rgba(232,148,58,.22)}
+.btn.solid{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.btn.solid:hover{filter:brightness(1.08)}
+.blend{display:flex;align-items:center;gap:10px;padding:0 16px 12px;color:var(--muted);border-bottom:1px solid var(--line)}
+.field{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 10px;color:var(--text)}
+select.field{flex:1;padding-right:34px}
+.pct{width:64px;text-align:center;font-family:var(--mono)}
+.gap{height:64px;display:grid;place-items:center;font:11px var(--mono);color:var(--faint);border-bottom:1px dashed var(--line)}
+.lbar{display:flex;align-items:center;gap:6px;padding:10px 16px;border-bottom:1px solid var(--line);color:var(--muted)}
+.lbar button{padding:5px;border-radius:5px;color:inherit}
+.lbar button:hover{color:var(--text);background:var(--surface)}
+.lbar .mono{margin-left:auto;font:11.5px var(--mono);color:var(--faint)}
+.export{padding:14px 16px 16px}
+.export .eh{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-weight:600}
+.export .eh svg{color:var(--accent)}
+.export .eh .mono{margin-left:auto;font:400 12px var(--mono);color:var(--accent)}
+.export .btn{width:100%;padding:14px;font-size:15px;border-radius:10px;display:flex;justify-content:center;gap:10px;align-items:center}
+.export p{margin-top:10px;text-align:center;font:400 11px/1.5 var(--mono);color:var(--faint)}
+
+/* ===== MEASURE OVERLAY (docs only) ===== */
+.measure [data-n]{outline:1px dashed #4ac8ff;outline-offset:1px;position:relative}
+.measure [data-n]::before{content:attr(data-n);position:absolute;top:-9px;left:-9px;z-index:2;width:16px;height:16px;border-radius:50%;background:#4ac8ff;color:#001;font:600 10px/16px var(--mono);text-align:center}
+.measure .vbar,.measure .rail,.measure .lp{outline:1px dashed #ff6bd6;outline-offset:3px}
+
+/* ===== DOC TABLES ===== */
+table{border-collapse:collapse;width:100%;max-width:760px;font-size:13px;margin-top:14px}
+td,th{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:500 11px var(--mono);color:var(--faint);letter-spacing:.08em}
+td:first-child{font:500 12px var(--mono);color:#4ac8ff;width:28px}
+code{font:12px var(--mono);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="select" viewBox="0 0 24 24"><path d="M5 3l14 8-6 2-2 6z"/></symbol>
+  <symbol id="rect" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/></symbol>
+  <symbol id="ellipse" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-3-5.4 3 1.1-6L3.2 9.4l6.1-.8z"/></symbol>
+  <symbol id="pen" viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19zM14 6l4 4"/></symbol>
+  <symbol id="lasso" viewBox="0 0 24 24"><path d="M8 20c2 1 5-1 4-4s4-3 6-6c1-4-5-6-9-4S3 12 6 15"/></symbol>
+  <symbol id="paint" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7-2 2v7H6v-7z"/></symbol>
+  <symbol id="ruler" viewBox="0 0 24 24"><path d="M5 19L19 5M8 12l2 2M12 8l2 2M5 19l3-1-2-2z"/></symbol>
+  <symbol id="pan" viewBox="0 0 24 24"><path d="M9 11V5a1.5 1.5 0 013 0v5m0-1V4a1.5 1.5 0 013 0v6m0-3a1.5 1.5 0 013 0v7a6 6 0 01-6 6h-1a6 6 0 01-5-3l-3-5a1.5 1.5 0 012.5-1.5L9 14"/></symbol>
+  <symbol id="cube" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5"/></symbol>
+  <symbol id="grid2d" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8"/></symbol>
+  <symbol id="layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></symbol>
+  <symbol id="up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></symbol>
+  <symbol id="down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></symbol>
+  <symbol id="edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></symbol>
+  <symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="export" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M4 15v5h16v-5"/></symbol>
+  <symbol id="download" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="crop" viewBox="0 0 24 24"><path d="M7 3v14h14M3 7h14v14"/></symbol>
+  <symbol id="cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="ops" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8.5 11h5"/></symbol>
+</svg>
+
+<h1>Viewport bar &amp; left panel</h1>
+<p class="sub">Three extracted components at 1:1. Click tabs, tools and pressed toggles to try states.</p>
+<button class="chip" id="m" aria-pressed="false">Show measurements</button>
+
+<!-- A -->
+<h2>A · Viewport bar</h2>
+<div class="scroll">
+  <div class="vbar" id="vbar">
+    <div data-n="1" id="vtabs" style="display:flex;gap:4px">
+      <button class="vtab" aria-selected="false">3D<br>View</button>
+      <button class="vtab" aria-selected="true">2D<br>Canvas</button>
+      <button class="vtab" aria-selected="false">Split</button>
+    </div>
+    <button class="ib" data-n="2" aria-label="Crop"><svg class="i"><use href="#crop"/></svg></button>
+    <button class="ib" aria-label="Snapshot"><svg class="i"><use href="#cam"/></svg></button>
+    <button class="ib tg" data-n="3" aria-label="Grid" aria-pressed="true"><svg class="i"><use href="#ops"/></svg></button>
+    <span class="sel" data-n="4"><select aria-label="Preview channel"><option>Normal (XYZ Tangent)</option><option>Height</option><option>Albedo</option></select></span>
+    <span class="sp"></span>
+    <button class="ib" aria-label="Fit"><svg class="i"><use href="#fit"/></svg></button>
+    <span data-n="5" style="display:flex;align-items:center;gap:6px"><button class="ib" aria-label="Zoom out"><svg class="i"><use href="#zoom"/></svg></button><span class="zoom">100%</span></span>
+  </div>
+</div>
+<div class="states">
+  <div><div class="lbl">TAB · DEFAULT / HOVER / SELECTED</div><div class="cap" style="display:flex;gap:4px">
+    <button class="vtab">Split</button><button class="vtab is-hover">Split</button><button class="vtab" aria-selected="true">Split</button></div></div>
+  <div><div class="lbl">ICON BUTTON · DEFAULT / HOVER / PRESSED</div><div class="cap" style="display:flex;gap:6px">
+    <button class="ib"><svg class="i"><use href="#cam"/></svg></button><button class="ib is-hover"><svg class="i"><use href="#cam"/></svg></button><button class="ib" aria-pressed="true"><svg class="i"><use href="#ops"/></svg></button></div></div>
+</div>
+<table>
+  <tr><th>#</th><th>PART</th><th>SPEC</th></tr>
+  <tr><td></td><td>Bar</td><td>h <code>60</code> · pad-x <code>10</code> · gap <code>6</code> · bg <code>--panel</code> · bottom 1px <code>--line</code></td></tr>
+  <tr><td>1</td><td>Tab</td><td>pad <code>10×18</code> · r6 · line-height 1.15 · selected: <code>--surface</code> bg, weight 600, <code>inset 0 -2px 0</code> accent underline · hover: <code>--surface</code></td></tr>
+  <tr><td>2</td><td>Icon button</td><td>pad 8 + 18px icon = <code>34×34</code> · r6 · <code>--muted</code>; hover <code>--surface</code></td></tr>
+  <tr><td>3</td><td>Pressed toggle</td><td><code>accent-soft</code> bg · accent icon</td></tr>
+  <tr><td>4</td><td>Channel select</td><td>min-w <code>230</code> · pad <code>9×14</code> (right 38 for chevron) · <code>--surface</code> · 1px <code>--line</code> · r6 · chevron 16px <code>--muted</code> at right 12</td></tr>
+  <tr><td>5</td><td>Zoom</td><td>icon button + mono 12 <code>--muted</code> label, pad-x 6; spacer pushes fit/zoom to the right</td></tr>
+</table>
+
+<!-- B + C -->
+<div class="row">
+  <div>
+    <h2>B · Tool rail</h2>
+    <aside class="rail" id="tools" style="height:760px">
+      <button class="tool" data-n="1" aria-pressed="true"><svg class="i"><use href="#select"/></svg>Select</button>
+      <button class="tool" aria-pressed="false"><svg class="i"><use href="#rect"/></svg>Rect</button>
+      <button class="tool" aria-pressed="false"><svg class="i"><use href="#ellipse"/></svg>Ellipse</button>
+      <button class="tool" aria-pressed="false"><svg class="i"><use href="#star"/></svg>Star</button>
+      <button class="tool" aria-pressed="false"><svg class="i"><use href="#pen"/></svg>Pen</button>
+      <button class="tool" aria-pressed="false"><svg class="i"><use href="#lasso"/></svg>Lasso</button>
+      <button class="tool" aria-pressed="false"><svg class="i"><use href="#paint"/></svg>Paint</button>
+      <button class="tool" aria-pressed="false"><svg class="i"><use href="#ruler"/></svg>Ruler</button>
+      <button class="tool" aria-pressed="false"><svg class="i"><use href="#pan"/></svg>Pan</button>
+      <div class="grow"></div>
+      <button class="tool" id="t3d" data-n="2" aria-pressed="false"><svg class="i"><use href="#cube"/></svg>3D</button>
+      <button class="tool" id="t2d" aria-pressed="true"><svg class="i"><use href="#grid2d"/></svg>2D</button>
+    </aside>
+    <div class="states" style="flex-direction:column;gap:8px">
+      <div class="lbl">DEFAULT / HOVER / ACTIVE</div>
+      <div class="cap" style="display:flex;gap:6px;width:fit-content">
+        <button class="tool"><svg class="i"><use href="#rect"/></svg>Rect</button>
+        <button class="tool is-hover"><svg class="i"><use href="#rect"/></svg>Rect</button>
+        <button class="tool" aria-pressed="true"><svg class="i"><use href="#rect"/></svg>Rect</button></div>
+    </div>
+  </div>
+
+  <div>
+    <h2>C · Layers panel chrome <span style="text-transform:none;letter-spacing:0">(layer rows: see layer component)</span></h2>
+    <div class="lp">
+      <div class="ph" data-n="1"><svg class="i"><use href="#layers"/></svg>Layers<button class="btn" data-n="2">+ Add</button></div>
+      <div class="blend" data-n="3">Blend
+        <select class="field" aria-label="Blend mode"><option>Derivative</option><option>Add</option><option>Overlay</option></select>
+        Opacity <input class="field pct" value="100%" aria-label="Opacity">
+      </div>
+      <div class="gap">· layer rows go here ·</div>
+      <div class="lbar" data-n="4">
+        <button aria-label="Move up"><svg class="i"><use href="#up"/></svg></button>
+        <button aria-label="Move down"><svg class="i"><use href="#down"/></svg></button>
+        <button aria-label="Duplicate"><svg class="i"><use href="#copy"/></svg></button>
+        <button aria-label="Rename"><svg class="i"><use href="#edit"/></svg></button>
+        <button aria-label="Delete"><svg class="i"><use href="#trash"/></svg></button>
+        <span class="mono">Reset · 3 layers</span>
+      </div>
+      <div class="export" data-n="5">
+        <div class="eh"><svg class="i"><use href="#export"/></svg>Export<span class="mono">Normal · Height · Project</span></div>
+        <button class="btn solid"><svg class="i"><use href="#download"/></svg>Export 2 maps</button>
+        <p>Normal, Height, Project · 16-bit · 1024 × 1024 · OpenGL (Y+)</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<table>
+  <tr><th>#</th><th>PART</th><th>SPEC</th></tr>
+  <tr><td></td><td>Tool rail</td><td>w <code>72</code> · pad <code>12×0</code> · gap 2 · bg <code>--panel</code> · 9 tools top, <code>3D</code>/<code>2D</code> bottom (2D last)</td></tr>
+  <tr><td>1</td><td>Tool cell</td><td><code>56</code> wide · pad <code>8 0 6</code> · icon 18 · gap 4 · label 11 · r10 · active: <code>accent-soft</code> + accent · hover: <code>--surface</code></td></tr>
+  <tr><td>2</td><td>Mode cell</td><td>same cell; <code>3D</code>/<code>2D</code> behave as a pair (one pressed)</td></tr>
+  <tr><td>C1</td><td>Panel header</td><td>pad <code>14×16</code> · weight 600 · accent icon · gap 10</td></tr>
+  <tr><td>C2</td><td>+ Add</td><td>pad <code>7×14</code> · r6 · accent-soft · 1px accent @25% · weight 500</td></tr>
+  <tr><td>C3</td><td>Blend row</td><td>pad <code>0 16 12</code> · gap 10 · bottom 1px <code>--line</code> · select flex:1 · opacity input <code>64</code>w mono centred · chevron on select added (present in the screenshot)</td></tr>
+  <tr><td>C4</td><td>Toolbar</td><td>pad <code>10×16</code> · gap 6 · icon buttons pad 5 r5 · right label mono 11.5 <code>--faint</code></td></tr>
+  <tr><td>C5</td><td>Export card</td><td>pad <code>14 16 16</code> · header weight 600 + accent icon + mono 12 accent right · button pad 14, 15px, r10, <code>--accent</code>/<code>--accent-ink</code> · caption mono 11 / 1.5 centred <code>--faint</code></td></tr>
+</table>
+
+<script>
+function one(sel,attr){var a=document.querySelectorAll(sel);a.forEach(function(b){b.addEventListener('click',function(){a.forEach(function(x){x.setAttribute(attr,x===b)})})})}
+one('#vtabs .vtab','aria-selected');
+one('#tools .tool:not(#t3d):not(#t2d)','aria-pressed');
+one('#t3d, #t2d','aria-pressed');
+document.querySelector('.tg').addEventListener('click',function(e){var b=e.currentTarget;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true')});
+var m=document.getElementById('m');
+m.addEventListener('click',function(){var on=m.getAttribute('aria-pressed')!=='true';m.setAttribute('aria-pressed',on);document.body.classList.toggle('measure',on)});
+</script>
+</body>
+</html>

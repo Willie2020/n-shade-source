@@ -1,0 +1,18 @@
+schema_version = "1.0.0"
+id = "n_shade_bridge"
+name = "N-shade Bridge"
+tagline = "Live normal, height and PBR maps from N-shade"
+version = "2.1.0"
+type = "add-on"
+
+maintainer = "N-shade"
+blender_version_min = "4.3.0"
+license = ["SPDX:MIT"]
+
+tags = ["Material", "Import-Export", "Mesh"]
+
+[permissions]
+network = "Loopback TCP only. The add-on asks the local N-shade editor for the current normal, height or PBR map and never contacts anything else."
+
+[build]
+paths_exclude_pattern = ["__pycache__/*", "*.pyc"]

@@ -1,0 +1,71 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/ns_core",
+    "crates/ns_pbr",
+    "crates/ns_bake",
+    "crates/ns_cli",
+    "crates/ns_app",
+]
+
+[workspace.package]
+version = "0.6.8"
+edition = "2021"
+rust-version = "1.95"
+license = "MIT"
+authors = ["N-shade contributors"]
+
+[workspace.dependencies]
+glam = { version = "0.32.0", features = ["serde"] }
+rayon = "1.10"
+rustfft = "6.4"
+serde = { version = "1.0", features = ["derive"] }
+ron = "0.8"
+uuid = { version = "1.10", features = ["v4", "serde"] }
+serde_json = "1.0"
+blake3 = "1.5"
+thiserror = "2.0"
+ttf-parser = "0.25"
+image = { version = "0.25", default-features = false, features = ["png", "tga", "jpeg", "exr", "hdr", "bmp", "tiff", "webp"] }
+libloading = "0.8"
+approx = "0.5"
+proptest = "1.5"
+tempfile = "3.12"
+wgpu = "29.0.3"
+pollster = "0.4"
+bytemuck = { version = "1", features = ["derive"] }
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+# Release-speed builds with line tables for Tracy/perf/flamegraph captures.
+# Keep this separate from `release` so normal builds stay lean.
+[profile.profiling]
+inherits = "release"
+debug = "line-tables-only"
+
+# Keep the editor interactive when running through `cargo run` (debug).
+# Dependencies (including Bevy) are optimized; our own crates stay debuggable.
+[profile.dev]
+opt-level = 1
+# Line tables keep backtraces useful for this workspace without the full type
+# info that dominates `target/debug`.
+# `cargo clean --profile dev` removes just this profile and keeps releases.
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 3
+# Third-party debug info is the bulk of the dev artifacts and is not where
+# normal editor/UI work steps; use the profiling profile when you need it.
+debug = false
+
+[profile.dev.package.ns_core]
+opt-level = 3
+
+[profile.dev.package.ns_pbr]
+opt-level = 3
+
+[profile.dev.package.ns_bake]
+opt-level = 3
