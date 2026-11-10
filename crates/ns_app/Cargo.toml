@@ -41,7 +41,7 @@ ns_pbr = { path = "../ns_pbr" }
 ns_bake = { path = "../ns_bake", features = ["gpu"] }
 serde_json = "1.0"
 getrandom = "0.3"
-rfd = "0.15"
+rfd = "0.17"
 gltf = "1.4"
 image.workspace = true
 tobj = "4.0"
